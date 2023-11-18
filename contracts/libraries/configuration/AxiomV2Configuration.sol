@@ -39,16 +39,32 @@ uint32 constant AUX_PEAKS_START_IDX = 608; // PUBLIC_BYTES_START_IDX + 7 * 32
 // 384 + 32 * 2..384 + 32 * 4: endHash (32 bytes) as two uint128 cast to uint256
 // 384 + 32 * 4..384 + 32 * 5: startBlockNumber (uint32: 4 bytes) and endBlockNumber (uint32: 4 bytes) are concatenated as `startBlockNumber . endBlockNumber` (8 bytes) and then cast to uint256
 // 384 + 32 * 5..384 + 32 * 7: root (32 bytes) as two uint128 cast to uint256, this is the highest peak of the MMR if endBlockNumber - startBlockNumber == 1023, otherwise 0
-function getBoundaryBlockData(bytes calldata proofData)
+function getBoundaryBlockData(
+    bytes calldata proofData
+)
     pure
-    returns (bytes32 prevHash, bytes32 endHash, uint32 startBlockNumber, uint32 endBlockNumber, bytes32 root)
+    returns (
+        bytes32 prevHash,
+        bytes32 endHash,
+        uint32 startBlockNumber,
+        uint32 endBlockNumber,
+        bytes32 root
+    )
 {
-    prevHash =
-        bytes32(uint256(bytes32(proofData[PUBLIC_BYTES_START_IDX:416])) << 128 | uint256(bytes32(proofData[416:448])));
-    endHash = bytes32(uint256(bytes32(proofData[448:480])) << 128 | uint256(bytes32(proofData[480:512])));
+    prevHash = bytes32(
+        (uint256(bytes32(proofData[PUBLIC_BYTES_START_IDX:416])) << 128) |
+            uint256(bytes32(proofData[416:448]))
+    );
+    endHash = bytes32(
+        (uint256(bytes32(proofData[448:480])) << 128) |
+            uint256(bytes32(proofData[480:512]))
+    );
     startBlockNumber = uint32(bytes4(proofData[536:540]));
     endBlockNumber = uint32(bytes4(proofData[540:544]));
-    root = bytes32(uint256(bytes32(proofData[544:576])) << 128 | uint256(bytes32(proofData[576:AUX_PEAKS_START_IDX])));
+    root = bytes32(
+        (uint256(bytes32(proofData[544:576])) << 128) |
+            uint256(bytes32(proofData[576:AUX_PEAKS_START_IDX]))
+    );
 }
 
 // We have a Merkle mountain range of max depth BLOCK_BATCH_DEPTH (so length BLOCK_BATCH_DEPTH + 1 total) ordered in **decreasing** order of peak size, so:
@@ -56,11 +72,29 @@ function getBoundaryBlockData(bytes calldata proofData)
 // `getAuxMmrPeak(proofData, i)` is the peaks for depth BLOCK_BATCH_DEPTH - 1 - i
 // 384 + 32 * 7 + 32 * 2 * i .. 384 + 32 * 7 + 32 * 2 * (i + 1): (32 bytes) as two uint128 cast to uint256, same as blockHash
 // Note that the decreasing ordering is *different* than the convention in library MerkleMountainRange
-function getAuxMmrPeak(bytes calldata proofData, uint256 i) pure returns (bytes32) {
-    return bytes32(
-        uint256(bytes32(proofData[AUX_PEAKS_START_IDX + i * 64:AUX_PEAKS_START_IDX + i * 64 + 32])) << 128
-            | uint256(bytes32(proofData[AUX_PEAKS_START_IDX + i * 64 + 32:AUX_PEAKS_START_IDX + (i + 1) * 64]))
-    );
+function getAuxMmrPeak(
+    bytes calldata proofData,
+    uint256 i
+) pure returns (bytes32) {
+    return
+        bytes32(
+            (uint256(
+                bytes32(
+                    proofData[AUX_PEAKS_START_IDX + i * 64:AUX_PEAKS_START_IDX +
+                        i *
+                        64 +
+                        32]
+                )
+            ) << 128) |
+                uint256(
+                    bytes32(
+                        proofData[AUX_PEAKS_START_IDX +
+                            i *
+                            64 +
+                            32:AUX_PEAKS_START_IDX + (i + 1) * 64]
+                    )
+                )
+        );
 }
 
 /*
@@ -70,6 +104,7 @@ function getAuxMmrPeak(bytes calldata proofData, uint256 i) pure returns (bytes3
 /// @dev Chain IDs for Ethereum mainnet and testnets
 uint64 constant MAINNET_CHAIN_ID = 1;
 uint64 constant GOERLI_CHAIN_ID = 5;
+uint64 constant CHIADO_CHAIN_ID = 10200;
 uint64 constant SEPOLIA_CHAIN_ID = 11_155_111;
 uint64 constant HOLESKY_CHAIN_ID = 17_000;
 

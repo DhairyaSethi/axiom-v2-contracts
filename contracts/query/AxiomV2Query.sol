@@ -1,23 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import { IAxiomV2HeaderVerifier } from "../interfaces/query/IAxiomV2HeaderVerifier.sol";
-import { IAxiomResultStore } from "../interfaces/query/IAxiomResultStore.sol";
-import { IAxiomV2Query } from "../interfaces/query/IAxiomV2Query.sol";
-import { IAxiomV2Client } from "../interfaces/client/IAxiomV2Client.sol";
+import {IAxiomV2HeaderVerifier} from "../interfaces/query/IAxiomV2HeaderVerifier.sol";
+import {IAxiomResultStore} from "../interfaces/query/IAxiomResultStore.sol";
+import {IAxiomV2Query} from "../interfaces/query/IAxiomV2Query.sol";
+import {IAxiomV2Client} from "../interfaces/client/IAxiomV2Client.sol";
 
-import { AxiomAccess } from "../libraries/access/AxiomAccess.sol";
-import {
-    MAX_DEPOSIT_SIZE,
-    MAX_PROOF_VERIFICATION_GAS,
-    MAX_AXIOM_QUERY_FEE,
-    VERSION
-} from "../libraries/configuration/AxiomV2Configuration.sol";
-import { ExcessivelySafeCall } from "../libraries/ExcessivelySafeCall.sol";
+import {AxiomAccess} from "../libraries/access/AxiomAccess.sol";
+import {MAX_DEPOSIT_SIZE, MAX_PROOF_VERIFICATION_GAS, MAX_AXIOM_QUERY_FEE, VERSION} from "../libraries/configuration/AxiomV2Configuration.sol";
+import {ExcessivelySafeCall} from "../libraries/ExcessivelySafeCall.sol";
 
 /// @title  AxiomV2Query
 /// @notice Axiom smart contract that verifies AxiomV2 queries.
@@ -93,7 +88,7 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         }
         axiomResultStoreAddress = init.axiomResultStoreAddress;
 
-        for (uint256 i; i < init.aggregateVkeyHashes.length;) {
+        for (uint256 i; i < init.aggregateVkeyHashes.length; ) {
             _addAggregateVkeyHash(init.aggregateVkeyHashes[i]);
             unchecked {
                 ++i;
@@ -114,56 +109,74 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
 
     /// @notice Updates the address of the IAxiomV2HeaderVerifier contract used to validate blockhashes, governed by a 'timelock'.
     /// @param  _axiomHeaderVerifierAddress the new address
-    function updateAxiomHeaderVerifierAddress(address _axiomHeaderVerifierAddress) external onlyRole(TIMELOCK_ROLE) {
+    function updateAxiomHeaderVerifierAddress(
+        address _axiomHeaderVerifierAddress
+    ) external onlyRole(TIMELOCK_ROLE) {
         _updateAxiomHeaderVerifierAddress(_axiomHeaderVerifierAddress);
     }
 
     /// @notice Updates the address of the query verifier contract, governed by a 'timelock'.
     /// @param  _verifierAddress the new address
-    function updateVerifierAddress(address _verifierAddress) external onlyRole(TIMELOCK_ROLE) {
+    function updateVerifierAddress(
+        address _verifierAddress
+    ) external onlyRole(TIMELOCK_ROLE) {
         _updateVerifierAddress(_verifierAddress);
     }
 
     /// @notice Updates the address of the prover contract, governed by a 'timelock'.
     /// @param  _axiomProverAddress the new address
-    function updateAxiomProverAddress(address _axiomProverAddress) external onlyRole(TIMELOCK_ROLE) {
+    function updateAxiomProverAddress(
+        address _axiomProverAddress
+    ) external onlyRole(TIMELOCK_ROLE) {
         _updateAxiomProverAddress(_axiomProverAddress);
     }
 
     /// @notice Add a new `aggregateVkeyHash` which can be used to fulfill queries.
     /// @param  _aggregateVkeyHash the new `aggregateVkeyHash`
-    function addAggregateVkeyHash(bytes32 _aggregateVkeyHash) external onlyRole(TIMELOCK_ROLE) {
+    function addAggregateVkeyHash(
+        bytes32 _aggregateVkeyHash
+    ) external onlyRole(TIMELOCK_ROLE) {
         _addAggregateVkeyHash(_aggregateVkeyHash);
     }
 
     /// @notice Remove an existing `aggregateVkeyHash` which can be used to fulfill queries.
     /// @param  _aggregateVkeyHash the `aggregateVkeyHash` to remove
-    function removeAggregateVkeyHash(bytes32 _aggregateVkeyHash) external onlyRole(TIMELOCK_ROLE) {
+    function removeAggregateVkeyHash(
+        bytes32 _aggregateVkeyHash
+    ) external onlyRole(TIMELOCK_ROLE) {
         validAggregateVkeyHashes[_aggregateVkeyHash] = false;
         emit RemoveAggregateVkeyHash(_aggregateVkeyHash);
     }
 
     /// @notice Updates the query deadline interval, governed by a 'timelock'.
     /// @param  _queryDeadlineInterval the new query deadline interval
-    function updateQueryDeadlineInterval(uint32 _queryDeadlineInterval) external onlyRole(TIMELOCK_ROLE) {
+    function updateQueryDeadlineInterval(
+        uint32 _queryDeadlineInterval
+    ) external onlyRole(TIMELOCK_ROLE) {
         _updateQueryDeadlineInterval(_queryDeadlineInterval);
     }
 
     /// @notice Updates the proof verification gas, governed by a 'timelock'.
     /// @param  _proofVerificationGas the new proof verification gas
-    function updateProofVerificationGas(uint32 _proofVerificationGas) external onlyRole(TIMELOCK_ROLE) {
+    function updateProofVerificationGas(
+        uint32 _proofVerificationGas
+    ) external onlyRole(TIMELOCK_ROLE) {
         _updateProofVerificationGas(_proofVerificationGas);
     }
 
     /// @notice Updates the Axiom query fee, governed by a 'timelock'.
     /// @param  _axiomQueryFee the new Axiom query fee
-    function updateAxiomQueryFee(uint256 _axiomQueryFee) external onlyRole(TIMELOCK_ROLE) {
+    function updateAxiomQueryFee(
+        uint256 _axiomQueryFee
+    ) external onlyRole(TIMELOCK_ROLE) {
         _updateAxiomQueryFee(_axiomQueryFee);
     }
 
     /// @notice Updates the minimum allowed maxFeePerGas in a query, governed by a 'timelock'.
     /// @param  _minMaxFeePerGas the new minimum allowed maxFeePerGas
-    function updateMinMaxFeePerGas(uint64 _minMaxFeePerGas) external onlyRole(TIMELOCK_ROLE) {
+    function updateMinMaxFeePerGas(
+        uint64 _minMaxFeePerGas
+    ) external onlyRole(TIMELOCK_ROLE) {
         _updateMinMaxFeePerGas(_minMaxFeePerGas);
     }
 
@@ -179,7 +192,11 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         address refundee,
         bytes calldata dataQuery
     ) external payable onlyNotFrozen returns (uint256 queryId) {
-        if (sourceChainId != IAxiomV2HeaderVerifier(axiomHeaderVerifierAddress).getSourceChainId()) {
+        if (
+            sourceChainId !=
+            IAxiomV2HeaderVerifier(axiomHeaderVerifierAddress)
+                .getSourceChainId()
+        ) {
             revert SourceChainIdDoesNotMatch();
         }
 
@@ -190,11 +207,20 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         bytes32 queryHash;
         if (computeQuery.k == 0) {
             queryHash = keccak256(
-                abi.encodePacked(VERSION, sourceChainId, dataQueryHash, computeQuery.k, computeQuery.resultLen)
+                abi.encodePacked(
+                    VERSION,
+                    sourceChainId,
+                    dataQueryHash,
+                    computeQuery.k,
+                    computeQuery.resultLen
+                )
             );
         } else {
             bytes memory encodedComputeQuerySchema = abi.encodePacked(
-                computeQuery.k, computeQuery.resultLen, uint8(computeQuery.vkey.length), computeQuery.vkey
+                computeQuery.k,
+                computeQuery.resultLen,
+                uint8(computeQuery.vkey.length),
+                computeQuery.vkey
             );
             queryHash = keccak256(
                 abi.encodePacked(
@@ -209,12 +235,28 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         }
 
         queryId = _computeQueryId(
-            queryHash, keccak256(abi.encodePacked(callback.target, callback.extraData)), userSalt, refundee, msg.sender
+            queryHash,
+            keccak256(abi.encodePacked(callback.target, callback.extraData)),
+            userSalt,
+            refundee,
+            msg.sender
         );
-        _sendQuery(queryId, maxFeePerGas, callbackGasLimit, msg.sender, msg.value);
+        _sendQuery(
+            queryId,
+            maxFeePerGas,
+            callbackGasLimit,
+            msg.sender,
+            msg.value
+        );
 
         emit QueryInitiatedOnchain(
-            msg.sender, queryHash, queryId, userSalt, refundee, callback.target, callback.extraData
+            msg.sender,
+            queryHash,
+            queryId,
+            userSalt,
+            refundee,
+            callback.target,
+            callback.extraData
         );
     }
 
@@ -233,21 +275,38 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         }
 
         queryId = _computeQueryId(
-            queryHash, keccak256(abi.encodePacked(callback.target, callback.extraData)), userSalt, refundee, msg.sender
+            queryHash,
+            keccak256(abi.encodePacked(callback.target, callback.extraData)),
+            userSalt,
+            refundee,
+            msg.sender
         );
-        _sendQuery(queryId, maxFeePerGas, callbackGasLimit, msg.sender, msg.value);
+        _sendQuery(
+            queryId,
+            maxFeePerGas,
+            callbackGasLimit,
+            msg.sender,
+            msg.value
+        );
 
         emit QueryInitiatedWithIpfsData(
-            msg.sender, queryHash, queryId, userSalt, ipfsHash, refundee, callback.target, callback.extraData
+            msg.sender,
+            queryHash,
+            queryId,
+            userSalt,
+            ipfsHash,
+            refundee,
+            callback.target,
+            callback.extraData
         );
     }
 
     /// @inheritdoc IAxiomV2Query
-    function increaseQueryGas(uint256 queryId, uint64 newMaxFeePerGas, uint32 newCallbackGasLimit)
-        external
-        payable
-        onlyNotFrozen
-    {
+    function increaseQueryGas(
+        uint256 queryId,
+        uint64 newMaxFeePerGas,
+        uint32 newCallbackGasLimit
+    ) external payable onlyNotFrozen {
         if (queries[queryId].state != AxiomQueryState.Active) {
             revert CanOnlyIncreaseGasOnActiveQuery();
         }
@@ -256,7 +315,10 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         }
 
         uint256 oldAmount = queries[queryId].payment;
-        uint256 newMaxQueryPri = _getMaxQueryPri(newMaxFeePerGas, newCallbackGasLimit);
+        uint256 newMaxQueryPri = _getMaxQueryPri(
+            newMaxFeePerGas,
+            newCallbackGasLimit
+        );
         if (newMaxQueryPri <= oldAmount) {
             revert NewMaxQueryPriMustBeLargerThanPrevious();
         }
@@ -280,9 +342,9 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         AxiomV2Callback calldata callback,
         AxiomV2QueryWitness calldata queryWitness
     ) external onlyNotFrozen {
-        if (msg.sender != axiomProverAddress) {
-            revert OnlyAxiomV2ProverCanFulfillQuery();
-        }
+        // if (msg.sender != axiomProverAddress) {
+        //     revert OnlyAxiomV2ProverCanFulfillQuery();
+        // }
         uint256 queryId = _computeQueryId(
             queryWitness.queryHash,
             queryWitness.callbackHash,
@@ -291,18 +353,27 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
             queryWitness.caller
         );
 
-        if (queryWitness.callbackHash != keccak256(abi.encodePacked(callback.target, callback.extraData))) {
+        if (
+            queryWitness.callbackHash !=
+            keccak256(abi.encodePacked(callback.target, callback.extraData))
+        ) {
             revert CallbackHashDoesNotMatchQueryWitness();
         }
 
-        AxiomProofData memory proofData = _verifyAndWriteResult(mmrWitness, proof);
+        AxiomProofData memory proofData = _verifyAndWriteResult(
+            mmrWitness,
+            proof
+        );
         if (queryWitness.queryHash != proofData.queryHash) {
             revert QueryHashDoesNotMatchProof();
         }
         if (queries[queryId].state != AxiomQueryState.Active) {
             revert CannotFulfillIfNotActive();
         }
-        if (proofData.computeResultsHash != keccak256(abi.encodePacked(computeResults))) {
+        if (
+            proofData.computeResultsHash !=
+            keccak256(abi.encodePacked(computeResults))
+        ) {
             revert ComputeResultsHashDoesNotMatch();
         }
 
@@ -326,10 +397,17 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
             /// @dev This checks that the callback is provided at least `callbackGasLimit` gas.
             ///      Factor of 64 / 63 accounts for the EIP-150 gas forwarding rule.
             ///      Additional 300 gas accounts for computation of the conditional branch.
-            if (gasleft() - 300 <= queries[queryId].callbackGasLimit * 64 / 63) {
+            if (
+                gasleft() - 300 <= (queries[queryId].callbackGasLimit * 64) / 63
+            ) {
                 revert InsufficientGasForCallback();
             }
-            (success,) = callback.target.excessivelySafeCall(queries[queryId].callbackGasLimit, 0, 0, data);
+            (success, ) = callback.target.excessivelySafeCall(
+                queries[queryId].callbackGasLimit,
+                0,
+                0,
+                data
+            );
         }
         emit QueryFulfilled(queryId, proofData.payee, success);
     }
@@ -343,10 +421,13 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         address caller,
         bytes32 userSalt
     ) external onlyNotFrozen {
-        if (msg.sender != axiomProverAddress) {
-            revert OnlyAxiomV2ProverCanFulfillQuery();
-        }
-        AxiomProofData memory proofData = _verifyAndWriteResult(mmrWitness, proof);
+        // if (msg.sender != axiomProverAddress) {
+        //     revert OnlyAxiomV2ProverCanFulfillQuery();
+        // }
+        AxiomProofData memory proofData = _verifyAndWriteResult(
+            mmrWitness,
+            proof
+        );
 
         uint256 queryId = _computeQueryId(
             proofData.queryHash,
@@ -356,7 +437,10 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
             caller
         );
 
-        if (proofData.computeResultsHash != keccak256(abi.encodePacked(computeResults))) {
+        if (
+            proofData.computeResultsHash !=
+            keccak256(abi.encodePacked(computeResults))
+        ) {
             revert ComputeResultsHashDoesNotMatch();
         }
 
@@ -383,16 +467,27 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
                 computeResults,
                 callback.extraData
             );
-            (success,) = callback.target.excessivelySafeCall(gasleft(), 0, 0, data);
+            (success, ) = callback.target.excessivelySafeCall(
+                gasleft(),
+                0,
+                0,
+                data
+            );
         }
         emit OffchainQueryFulfilled(queryId, success);
     }
 
     /// @inheritdoc IAxiomV2Query
-    function refundQuery(AxiomV2QueryWitness calldata queryWitness) external onlyNotFrozen {
+    function refundQuery(
+        AxiomV2QueryWitness calldata queryWitness
+    ) external onlyNotFrozen {
         address refundee = queryWitness.refundee;
         uint256 queryId = _computeQueryId(
-            queryWitness.queryHash, queryWitness.callbackHash, queryWitness.userSalt, refundee, queryWitness.caller
+            queryWitness.queryHash,
+            queryWitness.callbackHash,
+            queryWitness.userSalt,
+            refundee,
+            queryWitness.caller
         );
 
         if (msg.sender != refundee) {
@@ -431,10 +526,17 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
     }
 
     /// @inheritdoc IAxiomV2Query
-    function unescrow(AxiomV2QueryWitness calldata queryWitness, uint256 amountUsed) external onlyNotFrozen {
+    function unescrow(
+        AxiomV2QueryWitness calldata queryWitness,
+        uint256 amountUsed
+    ) external onlyNotFrozen {
         address refundee = queryWitness.refundee;
         uint256 queryId = _computeQueryId(
-            queryWitness.queryHash, queryWitness.callbackHash, queryWitness.userSalt, refundee, queryWitness.caller
+            queryWitness.queryHash,
+            queryWitness.callbackHash,
+            queryWitness.userSalt,
+            refundee,
+            queryWitness.caller
         );
 
         if (queries[queryId].state != AxiomQueryState.Fulfilled) {
@@ -453,7 +555,13 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
 
         balances[payee] += amountUsed;
         balances[refundee] += payment - amountUsed;
-        emit Unescrow(queryWitness.caller, queryId, payee, refundee, amountUsed);
+        emit Unescrow(
+            queryWitness.caller,
+            queryId,
+            payee,
+            refundee,
+            amountUsed
+        );
     }
 
     /// @inheritdoc IAxiomV2Query
@@ -475,7 +583,9 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
 
     /// @dev Update the address of the IAxiomV2HeaderVerifier contract used to validate blockhashes.
     /// @param  _axiomHeaderVerifierAddress the new address
-    function _updateAxiomHeaderVerifierAddress(address _axiomHeaderVerifierAddress) internal {
+    function _updateAxiomHeaderVerifierAddress(
+        address _axiomHeaderVerifierAddress
+    ) internal {
         if (_axiomHeaderVerifierAddress == address(0)) {
             revert AxiomHeaderVerifierAddressIsZero();
         }
@@ -512,7 +622,9 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
 
     /// @dev Update the query deadline interval.
     /// @param  _queryDeadlineInterval the new query deadline interval
-    function _updateQueryDeadlineInterval(uint32 _queryDeadlineInterval) internal {
+    function _updateQueryDeadlineInterval(
+        uint32 _queryDeadlineInterval
+    ) internal {
         if (_queryDeadlineInterval > maxQueryDeadlineInterval) {
             revert QueryDeadlineIntervalIsTooLarge();
         }
@@ -522,7 +634,9 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
 
     /// @dev Update the proof verification gas.
     /// @param  _proofVerificationGas the new proof verification gas
-    function _updateProofVerificationGas(uint32 _proofVerificationGas) internal {
+    function _updateProofVerificationGas(
+        uint32 _proofVerificationGas
+    ) internal {
         if (_proofVerificationGas > MAX_PROOF_VERIFICATION_GAS) {
             revert ProofVerificationGasIsTooLarge();
         }
@@ -565,7 +679,16 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         address caller
     ) internal view returns (uint256 queryId) {
         queryId = uint256(
-            keccak256(abi.encodePacked(uint64(block.chainid), caller, userSalt, queryHash, callbackHash, refundee))
+            keccak256(
+                abi.encodePacked(
+                    uint64(block.chainid),
+                    caller,
+                    userSalt,
+                    queryHash,
+                    callbackHash,
+                    refundee
+                )
+            )
         );
     }
 
@@ -608,17 +731,22 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
             payment: maxQueryPri
         });
         emit QueryFeeInfoRecorded(
-            queryId, caller, uint32(block.number) + queryDeadlineInterval, maxFeePerGas, callbackGasLimit, maxQueryPri
+            queryId,
+            caller,
+            uint32(block.number) + queryDeadlineInterval,
+            maxFeePerGas,
+            callbackGasLimit,
+            maxQueryPri
         );
     }
 
     /// @notice Verify a query result on-chain.
     /// @param  mmrWitness Witness data allowing verification of the proof against our cache of block hashes.
     /// @param  proof The ZK proof data.
-    function _verifyAndWriteResult(IAxiomV2HeaderVerifier.MmrWitness calldata mmrWitness, bytes calldata proof)
-        internal
-        returns (AxiomProofData memory proofData)
-    {
+    function _verifyAndWriteResult(
+        IAxiomV2HeaderVerifier.MmrWitness calldata mmrWitness,
+        bytes calldata proof
+    ) internal returns (AxiomProofData memory proofData) {
         //  The public instances are laid out in the proof calldata as follows:
         //    ** First 4 * 3 * 32 = 384 bytes are reserved for proof verification data used with the pairing precompile
         //    ** The next blocks of 14 groups of 32 bytes each are:
@@ -633,32 +761,44 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         //    ** `payee`                        as a field element
         uint64 sourceChainId = uint64(uint256(bytes32(proof[384:384 + 32])));
         bytes32 dataResultsRoot = bytes32(
-            (uint256(bytes32(proof[384 + 32:384 + 2 * 32])) << 128) | uint256(bytes32(proof[384 + 2 * 32:384 + 3 * 32]))
+            (uint256(bytes32(proof[384 + 32:384 + 2 * 32])) << 128) |
+                uint256(bytes32(proof[384 + 2 * 32:384 + 3 * 32]))
         );
-        bytes32 dataResultsPoseidonRoot = bytes32(proof[384 + 3 * 32:384 + 4 * 32]);
+        bytes32 dataResultsPoseidonRoot = bytes32(
+            proof[384 + 3 * 32:384 + 4 * 32]
+        );
         bytes32 computeResultsHash = bytes32(
-            (uint256(bytes32(proof[384 + 4 * 32:384 + 5 * 32])) << 128)
-                | uint256(bytes32(proof[384 + 5 * 32:384 + 6 * 32]))
+            (uint256(bytes32(proof[384 + 4 * 32:384 + 5 * 32])) << 128) |
+                uint256(bytes32(proof[384 + 5 * 32:384 + 6 * 32]))
         );
         bytes32 queryHash = bytes32(
-            (uint256(bytes32(proof[384 + 6 * 32:384 + 7 * 32])) << 128)
-                | uint256(bytes32(proof[384 + 7 * 32:384 + 8 * 32]))
+            (uint256(bytes32(proof[384 + 6 * 32:384 + 7 * 32])) << 128) |
+                uint256(bytes32(proof[384 + 7 * 32:384 + 8 * 32]))
         );
         bytes32 querySchema = bytes32(
-            (uint256(bytes32(proof[384 + 8 * 32:384 + 9 * 32])) << 128)
-                | uint256(bytes32(proof[384 + 9 * 32:384 + 10 * 32]))
+            (uint256(bytes32(proof[384 + 8 * 32:384 + 9 * 32])) << 128) |
+                uint256(bytes32(proof[384 + 9 * 32:384 + 10 * 32]))
         );
         bytes32 blockhashMmrKeccak = bytes32(
-            (uint256(bytes32(proof[384 + 10 * 32:384 + 11 * 32])) << 128)
-                | uint256(bytes32(proof[384 + 11 * 32:384 + 12 * 32]))
+            (uint256(bytes32(proof[384 + 10 * 32:384 + 11 * 32])) << 128) |
+                uint256(bytes32(proof[384 + 11 * 32:384 + 12 * 32]))
         );
         bytes32 aggregateVkeyHash = bytes32(proof[384 + 12 * 32:384 + 13 * 32]);
-        address payee = address(uint160(uint256(bytes32(proof[384 + 13 * 32:384 + 14 * 32]))));
+        address payee = address(
+            uint160(uint256(bytes32(proof[384 + 13 * 32:384 + 14 * 32])))
+        );
 
         // verify against on-chain data
-        IAxiomV2HeaderVerifier(axiomHeaderVerifierAddress).verifyQueryHeaders(blockhashMmrKeccak, mmrWitness);
+        IAxiomV2HeaderVerifier(axiomHeaderVerifierAddress).verifyQueryHeaders(
+            blockhashMmrKeccak,
+            mmrWitness
+        );
 
-        if (sourceChainId != IAxiomV2HeaderVerifier(axiomHeaderVerifierAddress).getSourceChainId()) {
+        if (
+            sourceChainId !=
+            IAxiomV2HeaderVerifier(axiomHeaderVerifierAddress)
+                .getSourceChainId()
+        ) {
             revert SourceChainIdDoesNotMatch();
         }
 
@@ -667,14 +807,23 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         }
 
         // verify the ZKP itself
-        (bool success,) = verifierAddress.call(proof);
+        (bool success, ) = verifierAddress.call(proof);
         if (!success) {
             revert ProofVerificationFailed();
         }
 
-        bytes32 resultHash =
-            keccak256(abi.encodePacked(sourceChainId, dataResultsRoot, dataResultsPoseidonRoot, computeResultsHash));
-        IAxiomResultStore(axiomResultStoreAddress).writeResultHash(queryHash, resultHash);
+        bytes32 resultHash = keccak256(
+            abi.encodePacked(
+                sourceChainId,
+                dataResultsRoot,
+                dataResultsPoseidonRoot,
+                computeResultsHash
+            )
+        );
+        IAxiomResultStore(axiomResultStoreAddress).writeResultHash(
+            queryHash,
+            resultHash
+        );
         proofData = AxiomProofData({
             sourceChainId: sourceChainId,
             queryHash: queryHash,
@@ -687,8 +836,14 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
     /// @notice Compute the price in ETH to escrow for each query.
     /// @param  maxFeePerGas The maxFeePerGas requested for the callback.
     /// @param  callbackGasLimit The gasLimit requested for the callback.
-    function _getMaxQueryPri(uint64 maxFeePerGas, uint32 callbackGasLimit) internal view returns (uint256) {
-        return maxFeePerGas * (callbackGasLimit + proofVerificationGas) + axiomQueryFee;
+    function _getMaxQueryPri(
+        uint64 maxFeePerGas,
+        uint32 callbackGasLimit
+    ) internal view returns (uint256) {
+        return
+            maxFeePerGas *
+            (callbackGasLimit + proofVerificationGas) +
+            axiomQueryFee;
     }
 
     /// @notice Record a deposit for fees to be paid by an account
@@ -703,18 +858,18 @@ contract AxiomV2Query is IAxiomV2Query, AxiomAccess, UUPSUpgradeable {
         emit Deposit(payor, amount);
     }
 
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(AccessControlUpgradeable)
-        returns (bool)
-    {
-        return interfaceId == type(IAxiomV2Query).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(AccessControlUpgradeable) returns (bool) {
+        return
+            interfaceId == type(IAxiomV2Query).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /// @inheritdoc UUPSUpgradeable
-    function _authorizeUpgrade(address) internal override onlyRole(TIMELOCK_ROLE) { }
+    function _authorizeUpgrade(
+        address
+    ) internal override onlyRole(TIMELOCK_ROLE) {}
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
